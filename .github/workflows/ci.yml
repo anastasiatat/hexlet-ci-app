@@ -1,27 +1,30 @@
-# file: .github/workflows/ci.yml
-name: show-directory
-# on – определяет события, которые запускают воркфлоу
+
+name: Node CI
+
 on:
-  push:
-    branches: ["main", "master"]
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  - push
+  - pull_request
+
+env:
+  CI: true
+
 jobs:
-  # build – произвольно выбранное имя задания
-  # их может быть больше одного
   build:
-    # операционная система для работы воркфлоу
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup environment
-        run: make setup
-
-      - name: Run Linter
-        run: make lint
-
-      - name: Run Tests
-        run: make test
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: make install
+      - run: make lint
+      - run: make test
+      - uses: hexlet-components/hello-from-hexlet-action@release
